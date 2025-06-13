@@ -317,6 +317,11 @@ func OpenModule(modulePath string) Module {
 		return GitModule{path: modulePath, mirror: mirror}
 	}
 
+	if util.DirExists(path.Join(modulePath, ".jj")) {
+		log.Debug("Found '.jj' directory. Expecting this to be a JujutsuModule.\n")
+		return JujutsuModule{path: modulePath}
+	}
+
 	if util.FileExists(path.Join(modulePath, tarMetadataFileName)) {
 		log.Debug("Found '%s' file. Expecting this to be a TarModule.\n", tarMetadataFileName)
 		module := TarModule{path: modulePath}
@@ -333,6 +338,7 @@ type ModuleType uint
 const (
 	GitModuleType ModuleType = iota
 	TarGzModuleType
+	JujutsuModuleType
 )
 
 func (t ModuleType) String() string {
@@ -340,6 +346,8 @@ func (t ModuleType) String() string {
 	case GitModuleType:
 		return "git"
 	case TarGzModuleType:
+		return "tar.gz"
+	case JujutsuModuleType:
 		return "tar.gz"
 	}
 
@@ -352,6 +360,8 @@ func ParseModuleTypeString(str string) (ModuleType, bool) {
 		return GitModuleType, true
 	} else if str == "tar.gz" {
 		return TarGzModuleType, true
+	} else if str == "jj" {
+		return JujutsuModuleType, true
 	}
 
 	return GitModuleType, false
@@ -373,6 +383,10 @@ func DetermineModuleType(url, moduleTypeString string) ModuleType {
 	if strings.HasSuffix(url, ".tar.gz") {
 		log.Debug("Module URL ends in '.tar.gz'. Trying to create a new TarModule.\n")
 		return TarGzModuleType
+	}
+	if strings.HasSuffix(url, ".jj") {
+		log.Debug("Module URL ends in '.jj'. Trying to create a new JujutsuModule.\n")
+		return JujutsuModuleType
 	}
 
 	log.Fatal("Failed to determine module type from dependency url '%s'.\n", url)
@@ -409,6 +423,16 @@ func OpenOrCreateModule(modulePath string, url string, moduleTypeString string, 
 			log.Fatal("Failed to create tar module: %s.\n", err)
 		}
 		SetupModule(modulePath)
+		return module
+	} else if moduleType == JujutsuModuleType {
+		module, err := createJujutsuModule(modulePath, url)
+		if err != nil {
+			os.RemoveAll(modulePath)
+			log.Fatal("Failed to create jj module: %s.\n", err)
+		}
+		if module.Head() == expectedHash {
+			SetupModule(modulePath)
+		}
 		return module
 	}
 
