@@ -56,9 +56,9 @@ func (d *Driver) HandleRequest(request *packages.DriverRequest, patterns []strin
 	response := &packages.DriverResponse{
 		Roots:     roots,
 		Packages:  pkgs,
-		Compiler:  "gc",
-		Arch:      "amd64", // TODO: detect from environment
-		GoVersion: 23,      // TODO: parse from go.mod or MODULE
+		Compiler:  "",
+		Arch:      "", // TODO: detect from environment
+		GoVersion: 0,  // TODO: parse from go.mod or MODULE
 	}
 	return response, nil
 }
@@ -108,17 +108,19 @@ func (d *Driver) findPackages(patterns []string) ([]*Package, error) {
 // convertPackage converts a dbt Package to packages.Package
 func (d *Driver) convertPackage(dbtPkg *Package, mode packages.LoadMode) *packages.Package {
 	pkg := &packages.Package{
-		ID:         "dbt@" + dbtPkg.ID,
-		Name:       dbtPkg.Name,
-		PkgPath:    dbtPkg.ImportPath,
-		GoFiles:    make([]string, len(dbtPkg.GoFiles)),
-		OtherFiles: []string{},
-		Imports:    make(map[string]*packages.Package),
+		ID:              "dbt@" + dbtPkg.ID,
+		Name:            dbtPkg.Name,
+		PkgPath:         dbtPkg.ImportPath,
+		GoFiles:         make([]string, len(dbtPkg.GoFiles)),
+		CompiledGoFiles: make([]string, len(dbtPkg.GoFiles)),
+		OtherFiles:      []string{},
+		Imports:         make(map[string]*packages.Package),
 	}
 
 	// Convert file paths to absolute
 	for i, file := range dbtPkg.GoFiles {
 		pkg.GoFiles[i] = filepath.Join(dbtPkg.Dir, file)
+		pkg.CompiledGoFiles[i] = filepath.Join(dbtPkg.Dir, file)
 	}
 
 	// Add test files if requested
