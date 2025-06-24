@@ -8,17 +8,23 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/daedaleanai/dbt/v3/util"
+	"github.com/daedaleanai/dbt/v3/workspace"
+
 	"golang.org/x/tools/go/packages"
 )
 
+const dbtRulesDirName = "dbt-rules"
+
 // Driver implements the go/packages driver protocol for dbt workspaces
 type Driver struct {
-	workspace *Workspace
+	workspace *workspace.Workspace
 }
 
 // NewDriver creates a new dbt driver for the given directory
 func NewDriver(dir string) (*Driver, error) {
-	workspace, err := FindWorkspace(dir)
+	workspaceRoot := util.GetWorkspaceRoot()
+	workspace, err := workspace.OpenWorkspace(workspaceRoot)
 	if err != nil {
 		return nil, err
 	}
