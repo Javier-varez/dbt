@@ -1,5 +1,7 @@
 github.com/daedaleanai/cobra v1.1.2 h1:SrvUq36mr90Nj+mXjnSIXzHJVJwqkLKAWEZx5eBt25M=
 github.com/daedaleanai/cobra v1.1.2/go.mod h1:1d2lKRWt/a1Q0Lb5kTMf+CGRAzzfV3WhfDYYhAOBo+Y=
+github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
+github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=

@@ -24,9 +24,9 @@
           pkgs = nixpkgsFor.${system};
           dbtApp = pkgs.buildGoModule rec {
             pname = "dbt-app";
-            version = "v3.1.0-dev";
+            version = "v3.2.0-dev";
             src = ./.;
-            vendorHash = "sha256-y0AHBjCnZv2c7r/NXFrJd2dtkX1fMQzRbOmqnw7J4DM=";
+            vendorHash = "sha256-rxyqZlzEVNcnWYMWmVeGOOoW5403zy6kclhNC1H5lJo=";
             tags = [
               "semver-override=${version}"
             ];
