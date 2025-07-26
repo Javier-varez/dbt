@@ -2,7 +2,6 @@ package module
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -68,28 +67,21 @@ func listGoModules(module Module, moduleFile ModuleFile) []GoModule {
 
 func listGoModulesCpp(module Module, moduleFile ModuleFile) []GoModule {
 	modulePath := module.RootPath()
-	moduleName := path.Base(modulePath) // FIXME: interface method
-
 	deps := util.OrderedKeys(moduleFile.Dependencies)
-
-	result := []GoModule{}
-	result = append(result, GoModule{
-		Name: moduleName,
-		Deps: deps,
-	})
 
 	rulesDirPath := path.Join(modulePath, rulesDirName)
 
 	if !util.DirExists(rulesDirPath) {
-		return result
+		return nil
 	}
 
-	files, err := ioutil.ReadDir(rulesDirPath)
+	files, err := os.ReadDir(rulesDirPath)
 	if err != nil {
 		log.Fatal("Failed to read content of %s/ directory: %s.\n", rulesDirPath, err)
 	}
 
-	for _, subdirName := range util.OrderedSlice(util.MappedSlice(files, func(fi os.FileInfo) string { return fi.Name() })) {
+	result := []GoModule{}
+	for _, subdirName := range util.OrderedSlice(util.MappedSlice(files, func(fi os.DirEntry) string { return fi.Name() })) {
 		result = append(result, GoModule{
 			Name: subdirName,
 			Deps: deps,
@@ -474,14 +466,18 @@ func GetAllModules(workspaceRoot string) util.OrderedMap[string, Module] {
 		log.Warning("There is no %s/ directory in the workspace. Try running 'dbt sync' first.\n", util.DepsDirName)
 		return util.NewOrderedMap[string, Module]()
 	}
-	files, err := ioutil.ReadDir(depsDir)
+	files, err := os.ReadDir(depsDir)
 	if err != nil {
 		log.Fatal("Failed to read content of %s/ directory: %s.\n", util.DepsDirName, err)
 	}
 	modules := map[string]Module{}
 
 	for _, file := range files {
-		if file.IsDir() || (file.Mode()&os.ModeSymlink) == os.ModeSymlink {
+		info, err := file.Info()
+		if err != nil {
+			log.Fatal("Failed to get file info for", file.Name())
+		}
+		if file.IsDir() || (info.Mode()&os.ModeSymlink) == os.ModeSymlink {
 			modules[file.Name()] = OpenModule(path.Join(depsDir, file.Name()))
 		}
 	}
