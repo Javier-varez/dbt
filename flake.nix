@@ -1,7 +1,7 @@
 {
   description = "Daedalean build tool";
 
-  inputs.nixpkgs.url = "nixpkgs/nixos-24.11";
+  inputs.nixpkgs.url = "nixpkgs/nixos-25.05";
 
   outputs =
     { self, nixpkgs }:
@@ -24,25 +24,27 @@
           pkgs = nixpkgsFor.${system};
           dbtApp = pkgs.buildGoModule rec {
             pname = "dbt-app";
-            version = "v3.1.0-dev";
+            version = "v3.2.1";
             src = ./.;
-            vendorHash = "sha256-y0AHBjCnZv2c7r/NXFrJd2dtkX1fMQzRbOmqnw7J4DM=";
+            vendorHash = "sha256-rxyqZlzEVNcnWYMWmVeGOOoW5403zy6kclhNC1H5lJo=";
             tags = [
               "semver-override=${version}"
             ];
-          };
-        in
-        {
-          dbt = pkgs.buildFHSUserEnv {
-            name = "dbt";
-            targetPkgs = pkgs: [
-              dbtApp
 
-              # dbt dependencies
+            buildInputs = [
               pkgs.bash
               pkgs.ninja
               pkgs.git
               pkgs.go
+            ];
+          };
+        in
+        {
+          dbt = dbtApp;
+          dbtSandbox = pkgs.buildFHSEnv {
+            name = "dbt";
+            targetPkgs = pkgs: [
+              dbtApp
             ];
             runScript = "dbt";
           };
