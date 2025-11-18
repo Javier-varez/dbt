@@ -63,6 +63,9 @@ type target struct {
 	Runnable    bool
 	Testable    bool
 	Report      bool
+	Selected    bool
+	RunCommand  string
+	TestCommand string
 }
 
 type flag struct {
@@ -265,6 +268,26 @@ func runBuild(args []string, mode mode, modeArgs []string) {
 			ninjaArgs = append(ninjaArgs, target+suffix)
 		}
 		runNinja(genInput.OutputDir, os.Stdout, ninjaArgs)
+	}
+
+	switch mode {
+	case modeRun, modeTest:
+		for _, target := range genOutput.SelectedTargets {
+			cmd := genOutput.Targets[target].RunCommand
+			if mode == modeTest {
+				cmd = genOutput.Targets[target].TestCommand
+			}
+			log.Debug("Executing %s\n", cmd)
+			runCmd := exec.Command("/usr/bin/env", "bash", "-c", cmd)
+			runCmd.Dir = genInput.OutputDir
+			runCmd.Stderr = os.Stderr
+			runCmd.Stdout = os.Stdout
+			runCmd.Stdin = os.Stdin
+			err := runCmd.Run()
+			if err != nil {
+				log.Fatal("Error executing target: %s\n", err)
+			}
+		}
 	}
 
 	if commandList {
